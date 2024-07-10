@@ -1,44 +1,10 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
-## Getting Started
-
-Project Structure
-
-project-root/
-├── prisma/
-│ └── schema.prisma
-├── src/
-│ ├── app/
-│ │ └── api/
-│ │ ├── users/
-│ │ │ └── route.tsx
-│ │ ├── categories/
-│ │ │ └── route.tsx
-│ │ ├── events/
-│ │ │ └── route.tsx
-│ │ └── orders/
-│ │ └── route.tsx
-│ └── lib/
-│ └── prisma.ts
-├── pages/
-│ └── YourPageLaYouKnowAlready
-├── .env
-├── package.json
-└── other files...
-
-
-## Prerequisites
-
-- Node.js
-- PostgreSQL
-- Prisma CLI
-
 ## Initial Setup
 
 1. **Clone the repository**:
 
     ```bash
-    git clone https://github.com/your-username/justrsvp-api.git
+    git clone https://github.com/nathangtg/justrsvp-api.git
     cd justrsvp-api
     ```
 

@@ -65,3 +65,20 @@ export function removeKeysFromQuery({
   keysToRemove.forEach((key) => searchParams.delete(key));
   return `?${searchParams.toString()}`;
 }
+  
+export const convertFileToUrl = (file: File) => URL.createObjectURL(file)
+
+export const formatPrice = (price: string) => {
+  const amount = parseFloat(price)
+  const formattedPrice = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount)
+
+  return formattedPrice
+}
+
+
+
+
+

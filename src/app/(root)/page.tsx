@@ -1,8 +1,42 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import CategoryFilter from "@/components/shared/CategoryFilter";
+import Collection from "@/components/shared/Collection";
+import Search from "@/components/shared/Search";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import { getAllEvents } from "@/lib/actions/event.actions";
+import { GetAllEventsParams, IEvent } from "../../../types/interface";
 
 export default function Home() {
+  const [page, setPage] = useState(1);
+  const [events, setEvents] = useState<{ data: IEvent[]; totalPages: number } | null>(null);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const params: GetAllEventsParams = {
+          query: "",
+          category: "",
+          limit: 6,
+          page: page,
+        };
+  
+        const fetchedEvents = await getAllEvents(params);
+        // Check if fetchedEvents is defined before setting the state
+        if (fetchedEvents) {
+          setEvents(fetchedEvents);
+        }
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+  
+    fetchEvents();
+  }, [page]);
+
   return (
     <>
       <section className="bg-primary-50 bg-dotted-pattern bg-contain py-5 md:py-10">
@@ -38,8 +72,19 @@ export default function Home() {
           Trusted by <br /> Thousands of Events
         </h2>
         <div className="flex w-full flex-col gap-5 md:flex-row">
-          Search CategoryFilter
+          <Search />
+          <CategoryFilter />
         </div>
+
+        <Collection 
+          data={events?.data || []}
+          emptyTitle="No Events Found"
+          emptyStateSubtext="Come back later"
+          collectionType="All_Events"
+          limit={6}
+          page={page}
+          totalPages={events?.totalPages || 0}
+        />
       </section>
     </>
   );

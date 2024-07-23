@@ -28,16 +28,9 @@ const UpdateEvent = async ({ params: { id } }: UpdateEventProps) => {
       </section>
 
       <div className="wrapper my-8">
-        <EventForm 
-          type="Update" 
-          event={{
-            ...event,
-            startDateTime: new Date(event.startDate),  // Convert to Date objects if necessary
-            endDateTime: new Date(event.endDate),
-          }} 
+      <EventForm userId={userId} type="Update" />
           eventId={event.id} 
           userId={userId} 
-        />
       </div>
     </>
   )

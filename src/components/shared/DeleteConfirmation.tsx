@@ -18,14 +18,14 @@ import {
 
 import { deleteEvent } from '@/lib/actions/event.actions'
 
-export const DeleteConfirmation = ({ eventId }: { eventId: string }) => {
+export const DeleteConfirmation = ({ eventId }: { eventId: number }) => {
   const pathname = usePathname() || '/'  // Ensure pathname is a string
   let [isPending, startTransition] = useTransition()
 
   return (
     <AlertDialog>
       <AlertDialogTrigger>
-        <Image src="/assets/icons/delete.svg" alt="edit" width={20} height={20} />
+        <Image src="/assets/icons/delete.svg" alt="delete" width={20} height={20} />
       </AlertDialogTrigger>
 
       <AlertDialogContent className="bg-white">
@@ -42,7 +42,7 @@ export const DeleteConfirmation = ({ eventId }: { eventId: string }) => {
           <AlertDialogAction
             onClick={() =>
               startTransition(async () => {
-                await deleteEvent({ eventId: parseInt(eventId), path: pathname })  // Ensure eventId is a number
+                await deleteEvent({ eventId, path: pathname })  // Ensure eventId is a number
               })
             }>
             {isPending ? 'Deleting...' : 'Delete'}

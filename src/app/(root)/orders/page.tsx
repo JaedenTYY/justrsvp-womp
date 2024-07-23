@@ -1,19 +1,44 @@
-import Search from '@/components/shared/Search';
-import { getOrdersByEvent } from '@/lib/actions/order.actions';
-import { formatDateTime, formatPrice } from '@/lib/utils';
-import { SearchParamProps} from '../../../../types/interface';
+import React from 'react'
+import Search from '@/components/shared/Search'
+import { getOrdersByEvent } from '@/lib/actions/order.actions'
+import { formatDateTime, formatPrice } from '@/lib/utils'
+import { SearchParamProps } from '../../../../types/interface';
 
+
+interface IOrderItem {
+  id: string;
+  event: {
+    id: number;
+    title: string;
+    description: string | null;
+    location: string | null;
+    imageUrl: string | null;
+    startDate: Date;
+    endDate: Date;
+    price: string | null;
+    isFree: boolean;
+    url: string | null;
+    categoryId: number;
+    organizerId: number;
+  };
+  buyer: {
+    firstName: string;
+    lastName: string;
+  };
+  createdAt: string | Date;
+  totalAmount: number;
+}
 
 const Orders = async ({ searchParams }: SearchParamProps) => {
-  const eventId = (searchParams?.eventId as string) || '';
-  const searchText = (searchParams?.query as string) || '';
+  const eventId = (searchParams?.eventId as string) || ''
+  const searchText = (searchParams?.query as string) || ''
 
-  const orders = await getOrdersByEvent({ eventId, searchString: searchText });
+  const orders = await getOrdersByEvent({ eventId, searchString: searchText })
 
   return (
     <>
-      <section className=" bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
-        <h3 className="wrapper h3-bold text-center sm:text-left ">Orders</h3>
+      <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
+        <h3 className="wrapper h3-bold text-center sm:text-left">Orders</h3>
       </section>
 
       <section className="wrapper mt-8">
@@ -41,14 +66,14 @@ const Orders = async ({ searchParams }: SearchParamProps) => {
             ) : (
               <>
                 {orders &&
-                  orders.map((row: IOrder) => (
+                  orders.map((row: any) => (
                     <tr
                       key={row.id}
-                      className="p-regular-14 lg:p-regular-16 border-b "
+                      className="p-regular-14 lg:p-regular-16 border-b"
                       style={{ boxSizing: 'border-box' }}>
-                      <td className="min-w-[250px] py-4 text-primary-500">{row.id}</td>
-                      <td className="min-w-[200px] flex-1 py-4 pr-4">{row.eventTitle}</td>
-                      <td className="min-w-[150px] py-4">{row.buyer.firstName} {row.buyer.lastName}</td>
+                      <td className="min-w-[250px] py-4 text-primary-500">{row.id.toString()}</td>
+                      <td className="min-w-[200px] flex-1 py-4 pr-4">{row.event.title}</td>
+                      <td className="min-w-[150px] py-4">{`${row.buyer.firstName} ${row.buyer.lastName}`}</td>
                       <td className="min-w-[100px] py-4">
                         {formatDateTime(row.createdAt).dateTime}
                       </td>
@@ -63,7 +88,7 @@ const Orders = async ({ searchParams }: SearchParamProps) => {
         </table>
       </section>
     </>
-  );
+  )
 }
 
-export default Orders;
+export default Orders

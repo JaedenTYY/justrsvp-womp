@@ -14,15 +14,40 @@ export async function createOrder(order: CreateOrderParams) {
     const newOrder = await prisma.order.create({
       data: {
         stripeId: order.stripeId,
-        eventId: Number(order.eventId), // ensure eventId is number
-        buyerId: Number(order.buyerId), // ensure buyerId is number
-        totalAmount: order.totalAmount.toString(), // ensure totalAmount is string
+        eventId: Number(order.eventId),
+        buyerId: Number(order.buyerId),
+        totalAmount: order.totalAmount?.toString(),
         createdAt: order.createdAt,
       },
     });
     return newOrder;
   } catch (error) {
     handleError(error);
+  }
+}
+
+// GET ORDERS BY USER
+export async function getOrdersByUser({ userId, page, limit = 3 }: { userId: string, page: number, limit?: number }) {
+  try {
+    const pageNumber = Number(page) || 1;
+    const skipAmount = (pageNumber - 1) * limit;
+
+    const orders = await prisma.order.findMany({
+      where: { buyerId: parseInt(userId, 10) }, // Ensure buyerId is parsed as an integer
+      skip: skipAmount,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: { event: true },
+    });
+
+    const ordersCount = await prisma.order.count({
+      where: { buyerId: parseInt(userId, 10) },
+    });
+
+    return { data: orders, totalPages: Math.ceil(ordersCount / limit) };
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    throw new Error('Error fetching orders');
   }
 }
 
@@ -94,33 +119,6 @@ export async function getOrdersByEvent({ searchString, eventId }: GetOrdersByEve
     });
 
     return orders;
-  } catch (error) {
-    handleError(error);
-  }
-}
-
-// GET ORDERS BY USER
-export async function getOrdersByUser({ userId, limit = 3, page = 1 }: GetOrdersByUserParams) {
-  try {
-    // Ensure page is a number and handle null case
-    const pageNumber = Number(page) || 1;
-    const skipAmount = (pageNumber - 1) * limit;
-
-    const orders = await prisma.order.findMany({
-      where: { buyerId: Number(userId) }, // ensure userId is number
-      skip: skipAmount,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        event: true,
-      },
-    });
-
-    const ordersCount = await prisma.order.count({
-      where: { buyerId: Number(userId) }, // ensure userId is number
-    });
-
-    return { data: orders, totalPages: Math.ceil(ordersCount / limit) };
   } catch (error) {
     handleError(error);
   }

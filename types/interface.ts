@@ -78,19 +78,28 @@ export interface CreateUserParams {
   }
   
   export interface IEvent {
-    id: string;
+    id: number;
     title: string;
-    description: string;
-    location: string;
-    imageUrl: string;
-    startDateTime: Date;
-    endDateTime: Date;
-    price: string;
+    description: string | null;
+    location: string | null;
+    imageUrl: string | null;
+    startDateTime: string;
+    endDateTime: string;
+    price: number;
     isFree: boolean;
-    url?: string;
-    categoryId: string;
-    organizerId: string;
+    url: string | null;
+    category: {
+      id: number;
+      name: string;
+    };
+    organizer: {
+      id: number;
+      firstName: string | null;
+      lastName: string | null;
+    };
+    organizerId: number;
   }
+  
   
   // ====== CATEGORY PARAMS
   export interface CreateCategoryParams {
@@ -152,14 +161,28 @@ export interface CreateOrderParams {
     searchParams: { [key: string]: string | string[] | undefined };
   }
 
-  export interface IOrderItem {
-    id: string;
-    eventTitle: string;
+  interface IOrderItem {
+    id: number; // Change this from string to number
+    event: {
+      id: number;
+      title: string;
+      description: string | null;
+      location: string | null;
+      imageUrl: string | null;
+      startDate: Date;
+      endDate: Date;
+      price: string | null;
+      isFree: boolean;
+      url: string | null;
+      categoryId: number;
+      organizerId: number;
+    };
     buyer: {
       firstName: string;
       lastName: string;
     };
-    createdAt: Date;
+    createdAt: string | Date;
     totalAmount: number;
   }
+  
   

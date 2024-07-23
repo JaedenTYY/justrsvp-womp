@@ -8,9 +8,18 @@ import { getEventById, getRelatedEventsByCategory } from '@/lib/actions/event.ac
 import Image from 'next/image';
 import { SearchParamProps } from '../../../../../types/interface';
 
-
 const EventDetails = async ({ params: { id }, searchParams }: SearchParamProps) => {
   const event = await getEventById(id);
+
+  // If the event is not found, return an error message
+  if (!event) {
+    return (
+      <section className="wrapper">
+        <h3 className="h3-bold text-center">Event not found</h3>
+        <p className="text-center">The event you are looking for does not exist.</p>
+      </section>
+    );
+  }
 
   const relatedEvents = await getRelatedEventsByCategory({
     categoryId: event.categoryId.toString(),
@@ -88,17 +97,17 @@ const EventDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
         <h2 className="h2-bold">Related Events</h2>
 
         <Collection 
-          data={relatedEvents?.data}
+          data={relatedEvents?.data || []}
           emptyTitle="No Events Found"
           emptyStateSubtext="Come back later"
           collectionType="All_Events"
           limit={3}
           page={parseInt(searchParams.page as string, 10) || 1}
-          totalPages={relatedEvents?.totalPages}
+          totalPages={relatedEvents?.totalPages || 0}
         />
       </section>
     </>
-  )
-}
+  );
+};
 
 export default EventDetails;

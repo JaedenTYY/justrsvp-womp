@@ -7,12 +7,12 @@ import Search from "@/components/shared/Search";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { getAllEvents } from "@/lib/actions/event.actions";
 import { GetAllEventsParams, IEvent } from "../../../types/interface";
 
 export default function Home() {
   const [page, setPage] = useState(1);
-  const [events, setEvents] = useState<{ data: IEvent[]; totalPages: number } | null>(null);
+  const [events, setEvents] = useState<IEvent[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -23,17 +23,52 @@ export default function Home() {
           limit: 6,
           page: page,
         };
-  
-        const fetchedEvents = await getAllEvents(params);
-        // Check if fetchedEvents is defined before setting the state
-        if (fetchedEvents) {
-          setEvents(fetchedEvents);
+
+        const queryString = new URLSearchParams(params as any).toString();
+        const response = await fetch(`/api/events?${queryString}`);
+        const fetchedEvents = await response.json();
+
+        console.log("Fetched events:", fetchedEvents);
+
+        // Check if fetchedEvents has data property and it's an array
+        const eventsData = Array.isArray(fetchedEvents.data) ? fetchedEvents.data : fetchedEvents;
+        const totalPages = fetchedEvents.totalPages || 1;
+
+        if (Array.isArray(eventsData)) {
+          const transformedEvents: IEvent[] = eventsData.map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            description: event.description,
+            location: event.location,
+            imageUrl: event.imageUrl,
+            startDateTime: event.startDate || event.startDateTime,
+            endDateTime: event.endDate || event.endDateTime,
+            price: event.price,
+            isFree: event.isFree,
+            url: event.url,
+            category: {
+              id: event.categoryId,
+              name: event.category?.name || "",
+            },
+            organizer: {
+              id: event.organizerId,
+              firstName: event.organizer?.firstName || "",
+              lastName: event.organizer?.lastName || "",
+            },
+            organizerId: event.organizerId,
+          }));
+
+          setEvents(transformedEvents);
+          setTotalPages(totalPages);
+          console.log("Events fetched:", transformedEvents);
+        } else {
+          console.error("Fetched events data is not in the expected format", fetchedEvents);
         }
       } catch (error) {
         console.error("Error fetching events:", error);
       }
     };
-  
+
     fetchEvents();
   }, [page]);
 
@@ -77,15 +112,25 @@ export default function Home() {
         </div>
 
         <Collection 
-          data={events?.data || []}
+          data={events}
           emptyTitle="No Events Found"
           emptyStateSubtext="Come back later"
           collectionType="All_Events"
           limit={6}
           page={page}
-          totalPages={events?.totalPages || 0}
+          totalPages={totalPages}
+          urlParamName="events"
         />
       </section>
+
+      <div className="pagination-controls">
+        <button onClick={() => setPage(page - 1)} disabled={page === 1}>
+          Previous
+        </button>
+        <button onClick={() => setPage(page + 1)} disabled={page >= totalPages}>
+          Next
+        </button>
+      </div>
     </>
   );
 }

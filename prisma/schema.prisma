@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Category {
   id   Int     @id @default(autoincrement())
   name String
@@ -53,4 +52,9 @@ model Order {
   buyerId    Int
   event      Event @relation(fields: [eventId], references: [id])
   buyer      User  @relation(fields: [buyerId], references: [id])
+}
+
+model Admin {
+  username String  @unique @id
+  password String
 }

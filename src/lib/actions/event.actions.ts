@@ -11,6 +11,7 @@ import {
   GetAllEventsParams,
   GetEventsByUserParams,
   GetRelatedEventsByCategoryParams,
+  GetOrdersByEventParams,
 } from '../../../types/interface';
 
 // CREATE EVENT
@@ -198,3 +199,52 @@ export async function getRelatedEventsByCategory({
   }
 }
 
+// GET ORDERS BY EVENT
+export async function getOrdersByEvent({ searchString, eventId }: GetOrdersByEventParams) {
+  try {
+    if (!eventId) throw new Error('Event ID is required');
+
+    const orders = await prisma.order.findMany({
+      where: {
+        eventId: Number(eventId),
+        OR: [
+          {
+            buyer: {
+              firstName: {
+                contains: searchString,
+                mode: 'insensitive',
+              },
+            },
+          },
+          {
+            buyer: {
+              lastName: {
+                contains: searchString,
+                mode: 'insensitive',
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        buyer: true,
+        event: true,
+      },
+    });
+
+    return orders.map(order => ({
+      id: order.id,
+      event: {
+        title: order.event.title,
+      },
+      buyer: {
+        firstName: order.buyer.firstName,
+        lastName: order.buyer.lastName,
+      },
+      createdAt: order.createdAt,
+      totalAmount: order.totalAmount ? parseFloat(order.totalAmount).toString() : '0',
+    }));
+  } catch (error) {
+    handleError(error);
+  }
+}

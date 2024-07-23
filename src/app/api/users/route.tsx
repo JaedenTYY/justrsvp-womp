@@ -1,9 +1,7 @@
+
 import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { UpdateUserParams } from "../../../../types/interface";
-import { updateUser } from "@/lib/actions/user.actions";
-
 
 export async function GET() {
   try {
@@ -43,23 +41,26 @@ export async function POST(req: NextRequest) {
 
 // Handle PUT requests
 export async function PUT(req: NextRequest) {
-  const { clerkId, email, username, firstName, lastName, photo } = await req.json();
+  const { id, clerkId, email, username, firstName, lastName, photo } =
+    await req.json();
   try {
-    const user: UpdateUserParams = { firstName, lastName, username, photo };
-    const updatedUser = await updateUser(clerkId, user);
+    const updatedUser = await prisma.user.update({
+      where: { id: Number(id) },
+      data: {
+        clerkId,
+        email,
+        username,
+        firstName,
+        lastName,
+        photo,
+      },
+    });
     return NextResponse.json(updatedUser, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
-    } else {
-      return NextResponse.json(
-        { error: "Failed to update user" },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json(
+      { error: "Failed to update user" },
+      { status: 500 }
+    );
   }
 }
 

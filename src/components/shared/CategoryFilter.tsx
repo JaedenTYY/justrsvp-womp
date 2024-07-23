@@ -55,18 +55,17 @@ const CategoryFilter = () => {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="All" className="select-item p-regular-14">
-          All
-        </SelectItem>
+        All
+      </SelectItem>
 
-        {categories.map((category) => (
-          <SelectItem
-            value={category.name}
-            key={category.id}
-            className="select-item p-regular-14"
-          >
-            {category.name}
-          </SelectItem>
-        ))}
+      {categories.map((category) => (
+        <SelectItem
+          value={category.name || 'unknown'}  // Ensure value is not empty
+          key={category.id}
+          className="select-item p-regular-14">
+          {category.name || 'Unknown'}
+        </SelectItem>
+    ))}
       </SelectContent>
     </Select>
   );

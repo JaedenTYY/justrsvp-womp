@@ -1,94 +1,143 @@
+'use client'
+
+import React, { useEffect, useState } from 'react';
 import Collection from '@/components/shared/Collection';
 import { Button } from '@/components/ui/button';
-import { getEventsByUser } from '@/lib/actions/event.actions';
-import { getOrdersByUser } from '@/lib/actions/order.actions';
 import Link from 'next/link';
-import React from 'react';
-import { auth } from '@clerk/nextjs/server';
+import { useAuth } from '@clerk/nextjs';
 import { SearchParamProps } from '../../../../types/interface';
 
-const ProfilePage = async ({ searchParams }: SearchParamProps) => {
-  const { sessionClaims } = auth();
-  const userId = sessionClaims?.sub as string;
-
-  if (!userId) {
-    return (
-      <div className="wrapper">
-        <h3 className="h3-bold text-center">Error loading profile</h3>
-        <p className="text-center">User is not authenticated.</p>
-      </div>
-    );
-  }
+const ProfilePage = ({ searchParams }: SearchParamProps) => {
+  const { userId: clerkId } = useAuth();
+  const [events, setEvents] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
 
   const ordersPage = Number(searchParams?.ordersPage) || 1;
   const eventsPage = Number(searchParams?.eventsPage) || 1;
 
-  try {
-    const orders = await getOrdersByUser({ userId, page: ordersPage });
-    console.log('Orders:', orders);  // Add logging to check the orders response
+  useEffect(() => {
+    const fetchUserId = async (clerkId: string) => {
+      try {
+        const response = await fetch(`/api/information?clerkId=${clerkId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-    const orderedEvents = orders?.data.map((order) => order.event) || [];
-    const organizedEvents = await getEventsByUser({ userId, page: eventsPage });
-    console.log('Organized Events:', organizedEvents);  // Add logging to check the organized events response
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Failed to fetch user info", errorText);
+        } else {
+          const userData = await response.json();
+          console.log("User info fetched successfully", userData);
+          setUserId(userData.id);
+        }
+      } catch (error) {
+        console.error("An error occurred while fetching user info", error);
+      }
+    };
 
-    return (
-      <>
-        {/* My Tickets */}
-        <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
-          <div className="wrapper flex items-center justify-center sm:justify-between">
-            <h3 className="h3-bold text-center sm:text-left">My Tickets</h3>
-            <Button asChild size="lg" className="button hidden sm:flex">
-              <Link href="/#events">Explore More Events</Link>
-            </Button>
-          </div>
-        </section>
+    if (clerkId) {
+      fetchUserId(clerkId);
+    }
+  }, [clerkId]);
 
-        <section className="wrapper my-8">
-          <Collection
-            data={orderedEvents}
-            emptyTitle="No event tickets purchased yet"
-            emptyStateSubtext="No worries - plenty of exciting events to explore!"
-            collectionType="My_Tickets"
-            limit={3}
-            page={ordersPage}
-            urlParamName="ordersPage"
-            totalPages={orders?.totalPages}
-          />
-        </section>
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (userId === null) {
+        setLoading(false);
+        return;
+      }
 
-        {/* Events Organized */}
-        <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
-          <div className="wrapper flex items-center justify-center sm:justify-between">
-            <h3 className="h3-bold text-center sm:text-left">Events Organized</h3>
-            <Button asChild size="lg" className="button hidden sm:flex">
-              <Link href="/events/create">Create New Event</Link>
-            </Button>
-          </div>
-        </section>
+      try {
+        const response = await fetch(`/api/events/by-user?userId=${userId}`);
+        const data = await response.json();
 
-        <section className="wrapper my-8">
-          <Collection
-            data={organizedEvents?.data || []}
-            emptyTitle="No events have been created yet"
-            emptyStateSubtext="Go create some now"
-            collectionType="Events_Organized"
-            limit={3}
-            page={eventsPage}
-            urlParamName="eventsPage"
-            totalPages={organizedEvents?.totalPages}
-          />
-        </section>
-      </>
-    );
-  } catch (error) {
-    console.error('Error loading profile:', error);
+        if (response.ok) {
+          setEvents(data.events);
+          setOrders(data.orders);
+        } else {
+          throw new Error(data.error);
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        setError('An unexpected error occurred.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [userId, ordersPage, eventsPage]);
+
+  if (loading) {
+    return <div className="wrapper">Loading...</div>;
+  }
+
+  if (error) {
     return (
       <div className="wrapper">
         <h3 className="h3-bold text-center">Error loading profile</h3>
-        <p className="text-center">An unexpected error occurred.</p>
+        <p className="text-center">{error}</p>
       </div>
     );
   }
+
+  const orderedEvents = orders.map((order: any) => order.event);
+
+  return (
+    <>
+      {/* My Tickets */}
+      <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
+        <div className="wrapper flex items-center justify-center sm:justify-between">
+          <h3 className="h3-bold text-center sm:text-left">My Tickets</h3>
+          <Button asChild size="lg" className="button hidden sm:flex">
+            <Link href="/#events">Explore More Events</Link>
+          </Button>
+        </div>
+      </section>
+
+      <section className="wrapper my-8">
+        <Collection
+          data={orderedEvents}
+          emptyTitle="No event tickets purchased yet"
+          emptyStateSubtext="No worries - plenty of exciting events to explore!"
+          collectionType="My_Tickets"
+          limit={3}
+          page={ordersPage}
+          urlParamName="ordersPage"
+          totalPages={Math.ceil(orders.length / 3)}
+        />
+      </section>
+
+      {/* Events Organized */}
+      <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
+        <div className="wrapper flex items-center justify-center sm:justify-between">
+          <h3 className="h3-bold text-center sm:text-left">Events Organized</h3>
+          <Button asChild size="lg" className="button hidden sm:flex">
+            <Link href="/events/create">Create New Event</Link>
+          </Button>
+        </div>
+      </section>
+
+      <section className="wrapper my-8">
+        <Collection
+          data={events}
+          emptyTitle="No events have been created yet"
+          emptyStateSubtext="Go create some now"
+          collectionType="Events_Organized"
+          limit={3}
+          page={eventsPage}
+          urlParamName="eventsPage"
+          totalPages={Math.ceil(events.length / 3)}
+        />
+      </section>
+    </>
+  );
 };
 
 export default ProfilePage;

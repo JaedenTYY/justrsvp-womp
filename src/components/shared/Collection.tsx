@@ -8,7 +8,7 @@ interface CollectionProps {
   limit: number;
   page: number;
   totalPages?: number;
-  urlParamName: string;
+  urlParamName?: string;
 }
 
 const Collection: React.FC<CollectionProps> = ({

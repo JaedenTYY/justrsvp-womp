@@ -30,12 +30,19 @@ const Collection: React.FC<CollectionProps> = ({
     );
   }
 
+  const handleRedirect = (id: string) => {
+    window.location.href = `http://localhost:3000/events/${id}`;
+  };
+
   return (
     <div className="flex flex-col items-center gap-10">
       <ul className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:gap-10">
         {data.map((item) => (
           <li key={item.id} className="flex justify-center">
-            <div className="group relative flex min-h-[380px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg md:min-h-[438px]">
+            <div
+              className="group relative flex min-h-[380px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg md:min-h-[438px] cursor-pointer"
+              onClick={() => handleRedirect(item.id)}
+            >
               <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
               <div className="flex min-h-[230px] flex-col gap-3 p-5 md:gap-4">
                 <h3 className="p-medium-16 md:p-medium-20 line-clamp-2 flex-1 text-black">{item.title}</h3>

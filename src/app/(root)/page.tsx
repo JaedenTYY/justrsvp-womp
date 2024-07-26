@@ -41,8 +41,8 @@ export default function Home() {
             description: event.description,
             location: event.location,
             imageUrl: event.imageUrl,
-            startDateTime: event.startDate || event.startDateTime,
-            endDateTime: event.endDate || event.endDateTime,
+            startDate: event.startDate || event.startDateTime,
+            endDate: event.endDate || event.endDateTime,
             price: event.price,
             isFree: event.isFree,
             url: event.url,
@@ -122,15 +122,6 @@ export default function Home() {
           urlParamName="events"
         />
       </section>
-
-      <div className="pagination-controls">
-        <button onClick={() => setPage(page - 1)} disabled={page === 1}>
-          Previous
-        </button>
-        <button onClick={() => setPage(page + 1)} disabled={page >= totalPages}>
-          Next
-        </button>
-      </div>
     </>
   );
 }

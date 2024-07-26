@@ -24,8 +24,8 @@ export interface CreateUserParams {
       description: string;
       location: string;
       imageUrl: string;
-      startDateTime: Date;
-      endDateTime: Date;
+      startDate: Date;
+      endDate: Date;
       categoryId: string;
       price: string;
       isFree: boolean;
@@ -83,8 +83,8 @@ export interface CreateUserParams {
     description: string | null;
     location: string | null;
     imageUrl: string | null;
-    startDateTime: string;
-    endDateTime: string;
+    startDate: string;
+    endDate: string;
     price: number;
     isFree: boolean;
     url: string | null;
@@ -185,4 +185,7 @@ export interface CreateOrderParams {
     totalAmount: number;
   }
   
-  
+  export interface RelatedEventsResponse {
+    data: IEvent[];
+    totalPages: number;
+  }

@@ -1,38 +1,63 @@
-// event/[id]/page.tsx
+'use client'
 
+import { useEffect, useState } from 'react';
 import CheckoutButton from '@/components/shared/CheckoutButton';
 import Collection from '@/components/shared/Collection';
-import { formatDateTime } from '@/lib/utils';
-import { getEventById, getRelatedEventsByCategory } from '@/lib/actions/event.actions';
-
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import Image from 'next/image';
-import { SearchParamProps } from '../../../../../types/interface';
+import { IEvent, RelatedEventsResponse, SearchParamProps } from '../../../../../types/interface';
 
-const EventDetails = async ({ params: { id }, searchParams }: SearchParamProps) => {
-  const event = await getEventById(id);
+const EventDetails = ({ params: { id }, searchParams }: SearchParamProps) => {
+  const [event, setEvent] = useState<IEvent | null>(null);
+  const [relatedEvents, setRelatedEvents] = useState<RelatedEventsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // If the event is not found, return an error message
-  if (!event) {
-    return (
-      <section className="wrapper">
-        <h3 className="h3-bold text-center">Event not found</h3>
-        <p className="text-center">The event you are looking for does not exist.</p>
-      </section>
-    );
+  useEffect(() => {
+    if (id) {
+      console.log(id)
+      fetch(`/api/events/by-id?eventId=${id}`)
+        .then(response => response.json())
+        .then((data: IEvent) => {
+          setEvent(data);
+          return fetch(`/api/events/by-category?categoryId=${data.category.id}&page=${searchParams.page || '1'}`);
+        })
+        .then(response => response.json())
+        .then((data: RelatedEventsResponse) => {
+          setRelatedEvents(data);
+          setLoading(false);
+        })
+        .catch(error => {
+          console.error('Error fetching event data:', error);
+          setError('Error fetching event data');
+          setLoading(false);
+        });
+    }
+  }, [id, searchParams]);
+
+  if (loading) {
+    return <LoadingSpinner />;
   }
 
-  const relatedEvents = await getRelatedEventsByCategory({
-    categoryId: event.categoryId.toString(),
-    eventId: event.id.toString(),
-    page: searchParams.page as string || '1',
-  });
+  if (error || !event) {
+    return <div>Error fetching event: {error}</div>;
+  }
+
+  const formatDateTime = (dateTime: string | Date) => {
+    const date = new Date(dateTime);
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    const dateOnly = date.toLocaleDateString(undefined, options);
+    const timeOnly = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+    return { dateOnly, timeOnly };
+  };
 
   return (
     <>
       <section className="flex justify-center bg-primary-50 bg-dotted-pattern bg-contain">
         <div className="grid grid-cols-1 md:grid-cols-2 2xl:max-w-7xl">
           <Image 
-            src={event.imageUrl}
+            src={event.imageUrl || '/placeholder.jpg'}
             alt="hero image"
             width={1000}
             height={1000}
@@ -62,21 +87,18 @@ const EventDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
 
             <CheckoutButton event={event} />
 
-            <div className="flex flex-col gap-5">
-              <div className='flex gap-2 md:gap-3'>
-                <Image src="/assets/icons/calendar.svg" alt="calendar" width={32} height={32} />
+          <div className="flex flex-col gap-5">
+            <div className='flex gap-2 md:gap-3'>
+              <Image src="/assets/icons/calendar.svg" alt="calendar" width={32} height={32} />
                 <div className="p-medium-16 lg:p-regular-20 flex flex-wrap items-center">
                   <p>
-                    {formatDateTime(event.startDateTime).dateOnly} - {' '}
-                    {formatDateTime(event.startDateTime).timeOnly}
+                    {formatDateTime(event.startDate).dateOnly} - {formatDateTime(event.startDate).timeOnly}
                   </p>
                   <p>
-                    {formatDateTime(event.endDateTime).dateOnly} -  {' '}
-                    {formatDateTime(event.endDateTime).timeOnly}
+                    {formatDateTime(event.endDate).dateOnly} - {formatDateTime(event.endDate).timeOnly}
                   </p>
                 </div>
-              </div>
-
+            </div>
               <div className="p-regular-20 flex items-center gap-3">
                 <Image src="/assets/icons/location.svg" alt="location" width={32} height={32} />
                 <p className="p-medium-16 lg:p-regular-20">{event.location}</p>
@@ -86,7 +108,11 @@ const EventDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
             <div className="flex flex-col gap-2">
               <p className="p-bold-20 text-grey-600">What You'll Learn:</p>
               <p className="p-medium-16 lg:p-regular-18">{event.description}</p>
-              <p className="p-medium-16 lg:p-regular-18 truncate text-primary-500 underline">{event.url}</p>
+              {event.url && (
+                <a href={event.url} target="_blank" rel="noopener noreferrer" className='p-medium-16 lg:p-regular-18 truncate text-primary-500 underline'>
+                  {event.url}
+                </a>
+              )}            
             </div>
           </div>
         </div>
@@ -97,13 +123,13 @@ const EventDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
         <h2 className="h2-bold">Related Events</h2>
 
         <Collection 
-          data={relatedEvents?.data || []}
+          data={relatedEvents?.data || []} 
           emptyTitle="No Events Found"
           emptyStateSubtext="Come back later"
           collectionType="All_Events"
           limit={3}
-          page={parseInt(searchParams.page as string, 10) || 1}
-          totalPages={relatedEvents?.totalPages || 0}
+          page={1}
+          totalPages={relatedEvents?.totalPages}
         />
       </section>
     </>

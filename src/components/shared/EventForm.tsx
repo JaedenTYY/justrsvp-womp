@@ -16,6 +16,7 @@ import DatePicker from "react-datepicker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { eventFormSchema } from "@/lib/validator";
 import { useUser } from "@clerk/nextjs";
+import router from "next/router";
 
 type userInfo = {
   id: string;

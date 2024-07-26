@@ -14,7 +14,7 @@ interface CheckoutButtonProps {
 const CheckoutButton: React.FC<CheckoutButtonProps> = ({ event }) => {
   const { user } = useUser();
   const userId = user?.publicMetadata.userId as string;
-  const hasEventFinished = new Date(event.endDateTime) < new Date();
+  const hasEventFinished = new Date(event.endDate) < new Date();
 
   return (
     <div className="flex items-center gap-3">

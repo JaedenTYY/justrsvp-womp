@@ -1,42 +1,75 @@
-import Link from 'next/link'
+'use client'
 
-export default function AdminDashboard() {
+import { useState, FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
+import axios from 'axios'
+
+export default function AdminLogin() {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const router = useRouter()
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    setError('')
+    try {
+      const response = await axios.post('/api/admin/login', { username, password })
+      const { token } = response.data
+      
+      // Store the token in localStorage or a secure cookie
+      localStorage.setItem('adminToken', token)
+      
+      // Redirect to admin dashboard
+      router.push('/admin/dashboard')
+    } catch (error) {
+      setError('Invalid credentials. Please try again.')
+    }
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">Admin Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[
-          { href: "/admin/users", title: "Manage Users", color: "bg-blue-600" },
-          { href: "/admin/categories", title: "Manage Categories", color: "bg-green-600" },
-          { href: "/admin/orders", title: "Manage Orders", color: "bg-yellow-600" },
-          { href: "/admin/events", title: "Manage Events", color: "bg-purple-600" },
-        ].map((item) => (
-          <Link 
-            key={item.href}
-            href={item.href} 
-            className={`
-              ${item.color} 
-              hover:opacity-90 
-              transition-all 
-              duration-300 
-              ease-in-out
-              text-white 
-              rounded-lg 
-              shadow-md 
-              overflow-hidden
-              transform
-              hover:scale-105
-              hover:shadow-lg
-            `}
-          >
-            <div className="p-6 group">
-              <h2 className="text-xl font-semibold mb-2 transition-transform duration-300 group-hover:-translate-y-0.5">{item.title}</h2>
-              <p className="text-sm opacity-90 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0.5">
-                Click to {item.title.toLowerCase()}
-              </p>
-            </div>
-          </Link>
-        ))}
+    <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md">
+        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4">
+          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Admin Login</h2>
+          {error && <p className="text-red-500 text-xs italic mb-4">{error}</p>}
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+              Username
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="username"
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+              Password
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+              id="password"
+              type="password"
+              placeholder="******************"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-all duration-300 ease-in-out transform hover:scale-105"
+              type="submit"
+            >
+              Sign In
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )

@@ -16,7 +16,7 @@ import DatePicker from "react-datepicker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { eventFormSchema } from "@/lib/validator";
 import { useUser } from "@clerk/nextjs";
-import router from "next/router";
+import { useRouter } from "next/navigation";  // Correct hook for Next.js navigation
 
 type userInfo = {
   id: string;
@@ -37,6 +37,7 @@ const EventForm = ({ userId, type }: EventFormProps) => {
   const [userInfo, setUserInfo] = useState<{ id: string } | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const initialValues = eventDefaultValues;
+  const router = useRouter();  // Use the useRouter hook
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
@@ -71,7 +72,6 @@ const EventForm = ({ userId, type }: EventFormProps) => {
     }
   }, [user]);
 
-  // Define a submit handler
   async function onSubmit(values: z.infer<typeof eventFormSchema>) {
     if (!userInfo || !userInfo.id) {
       console.error('User info ID is not available');
@@ -82,7 +82,6 @@ const EventForm = ({ userId, type }: EventFormProps) => {
     const payload = { ...values, organizerId, categoryId: parseInt(values.categoryId, 10) };
     console.log("Submitting form with values:", payload);
 
-    // Call the API to submit the form
     const response = await fetch("/api/events", {
       method: "POST",
       body: JSON.stringify(payload),
@@ -95,6 +94,7 @@ const EventForm = ({ userId, type }: EventFormProps) => {
       console.error("Failed to submit form", await response.text());
     } else {
       console.log("Form submitted successfully", await response.json());
+      router.push("/profile");
     }
   }
 
